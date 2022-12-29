@@ -97,10 +97,9 @@ class CharactersMatrix {
 
         if (this.iteration > 5) {
 
-            let calculation = (1 - currentIteration / columnLength)
-            console.log("calculation", calculation)
-            console.log("currentIteration", currentIteration)
-            console.log("columnLength", columnLength)
+            let citer = currentIteration > columnLength ? columnLength : currentIteration;
+
+            let calculation = ( ( citer / columnLength ) )
 
             this.currentOpacity = (calculation > 0) ? calculation : 0;
             if (this.currentOpacity == 0) {
