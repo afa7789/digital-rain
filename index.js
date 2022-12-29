@@ -33,7 +33,7 @@ class RainColumn {
     }
 
     isAlive(iteration) {
-        return this.columnLength + this.startingIteration > iteration;
+        return (this.columnLength * 2 ) + this.startingIteration > iteration;
     }
 
     addNewCharacter(iteration) {
@@ -50,7 +50,7 @@ class RainColumn {
     next(iteration) {
         if (this.isAlive(iteration))
             this.arrayRainColumn.forEach((character, index) => {
-                if (!character.next(this.startingIteration + index, this.columnLength)) {
+                if (!character.next((this.startingIteration) + index, this.columnLength)) {
                     character.kill();
                     this.arrayRainColumn.splice(index, 1);
                 }
@@ -83,7 +83,7 @@ class CharactersMatrix {
 
         this.currentCharacter = getRandomCharacter();
         this.characterX = columnX + (randomNormal() - 0.5);
-        this.characterY = columnY + (currentIteration * 4);
+        this.characterY = columnY + (currentIteration * 10);
         this.currentColor = ColorTable[this.iteration]
 
         this.updateElement();
@@ -96,7 +96,12 @@ class CharactersMatrix {
 
 
         if (this.iteration > 5) {
+
             let calculation = (1 - currentIteration / columnLength)
+            console.log("calculation", calculation)
+            console.log("currentIteration", currentIteration)
+            console.log("columnLength", columnLength)
+
             this.currentOpacity = (calculation > 0) ? calculation : 0;
             if (this.currentOpacity == 0) {
                 this.updateElement();
@@ -152,6 +157,7 @@ window.onload = function () {
 
     let width = window.innerWidth;
     let height = window.innerHeight;
+    let originalHeight = window.innerHeight;
     let numberOfCharactersColumns = Math.ceil(width / fontSize);
     console.log ( "width ", width)
 
@@ -175,19 +181,17 @@ window.onload = function () {
         // create rain columns
         for (let i = 0; i < numberOfCharactersColumns; i++) {
             if (rainColumns[i] == null) {
-                console.log( "here null")
                 let newRainColumn = new RainColumn(
                     Math.ceil((height / fontSize) * randomNormal()),
                     iteration,
                     i * fontSize,
-                    randomNormal() * fontSize * height - fontSize
+                    randomNormal() * randomNormal() * originalHeight
                 );
                 rainColumns[i]=newRainColumn;
             }
 
             if (rainColumns[i] != null) {
                 if (rainColumns[i]?.isAlive(iteration)) {
-                    console.log("here", i)
                     rainColumns[i].next(iteration);
                 } else {
                     rainColumns[i].kill();
@@ -197,5 +201,5 @@ window.onload = function () {
 
         }
         iteration++;
-    }, 1000 / 60);
+    }, 10000 / 60);
 }
