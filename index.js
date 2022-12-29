@@ -33,7 +33,7 @@ class RainColumn {
     }
 
     isAlive(iteration) {
-        return (this.columnLength * 3 ) + this.startingIteration > iteration;
+        return this.columnLength * 2 + this.startingIteration > iteration;
     }
 
     addNewCharacter(iteration) {
