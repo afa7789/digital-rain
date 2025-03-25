@@ -21,9 +21,6 @@ class RainColumn {
     arrayRainColumn = []; 
     columnY = 0; 
     columnX = 0; 
-    isDimming = false;
-    dimProgress = 1;
-    dimmingStartIteration = 0;
 
     constructor(length, currentIter, x, y) {
         this.columnLength = length;
@@ -48,41 +45,15 @@ class RainColumn {
     }
 
     next(iteration) {
-        // If dimming has started, gradually reduce opacity
-        if (this.isDimming) {
-            // Slow down dimming process
-            const dimSpeed = 0.01;
-            this.dimProgress -= dimSpeed;
-            
-            // Update opacity of all characters
-            this.arrayRainColumn.forEach(character => {
-                character.element.style.opacity = this.dimProgress;
-            });
-
-            // Only kill when opacity is very low
-            if (this.dimProgress <= 0.05) {
-                this.kill();
-                return false;
-            }
-            return true;
-        }
-
         // Normal column lifecycle
-        if (this.isAlive(iteration)) {
+        if (this.isAlive(iteration))
             this.arrayRainColumn.forEach((character, index) => {
                 if (!character.next((this.startingIteration) + index, this.columnLength)) {
                     character.kill();
                     this.arrayRainColumn.splice(index, 1);
                 }
             });
-            this.addNewCharacter(iteration);
-            return true;
-        }
-
-        // Start dimming when column is no longer alive
-        this.isDimming = true;
-        this.dimmingStartIteration = iteration;
-        return true;
+        this.addNewCharacter(iteration);
     }
 
     kill() {
