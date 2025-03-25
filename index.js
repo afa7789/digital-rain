@@ -17,13 +17,13 @@ const ColorTable = {
 //////// Classes
 
 class RainColumn {
-
-    columnLength = 0; // number of characters in column, can't be more than the height of the screen
-
-    startingIteration = 0; // iteration
-    arrayRainColumn = []; // array of charactersMatrix
-    columnY = 0; // y position of the column
-    columnX = 0; // x position of the column
+columnLength = 0; 
+    startingIteration = 0; 
+    arrayRainColumn = []; 
+    columnY = 0; 
+    columnX = 0; 
+    isDimming = false; // New flag to track dimming state
+    dimProgress = 1; // New property to track opacity reduction
 
     constructor(length, currentIter, x, y) {
         this.columnLength = length;
@@ -48,14 +48,37 @@ class RainColumn {
     }
 
     next(iteration) {
-        if (this.isAlive(iteration))
+        if (this.isDimming) {
+            // Gradually reduce opacity
+            this.dimProgress -= 0.05; // Adjust this value to control dimming speed
+            
+            // Update opacity of all characters
+            this.arrayRainColumn.forEach(character => {
+                character.element.style.opacity = this.dimProgress;
+            });
+
+            // When opacity reaches near zero, kill the column
+            if (this.dimProgress <= 0.1) {
+                this.kill();
+                return false;
+            }
+            return true;
+        }
+
+        if (this.isAlive(iteration)) {
             this.arrayRainColumn.forEach((character, index) => {
                 if (!character.next((this.startingIteration) + index, this.columnLength)) {
                     character.kill();
                     this.arrayRainColumn.splice(index, 1);
                 }
             });
-        this.addNewCharacter(iteration)
+            this.addNewCharacter(iteration);
+            return true;
+        }
+
+        // Start dimming when column is no longer alive
+        this.isDimming = true;
+        return true;
     }
 
     kill() {
@@ -69,7 +92,7 @@ class CharactersMatrix {
     currentCharacter = ''; // current character
     currentColor = ''; // current color
 
-    currentOpacity = 1;
+    currentOpacity = 0.1; // Start with low opacity
     iteration = 0;
     decayTime = 0; // decay time of the character in miliseconds
 
@@ -95,19 +118,19 @@ class CharactersMatrix {
         this.characterX = this.characterX + (((randomNormal() * 2) - 1) * 0.1);
 
 
-        if (this.iteration > 5) {
-
+        // Gradually increase opacity for newer characters
+        if (this.iteration <= 5) {
+            this.currentOpacity = Math.min(this.currentOpacity + 0.2, 1); // Increase opacity up to 1
+            this.currentColor = ColorTable[this.iteration];
+        } else {
             let citer = currentIteration > columnLength ? columnLength : currentIteration;
-
-            let calculation = ( ( citer / columnLength ) )
-
+            let calculation = (citer / columnLength);
             this.currentOpacity = (calculation > 0) ? calculation : 0;
+            
             if (this.currentOpacity == 0) {
                 this.updateElement();
                 return false;
             }
-        } else {
-            this.currentColor = ColorTable[this.iteration];
         }
 
         if (randomNormal() > 0.6) {
