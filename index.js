@@ -1,4 +1,3 @@
-
 const currency = '¹²³£¢$¤¥֏₠₡₢₣₤₥₦₩₫€₭₱₲₳₴₵₶₷₸₹₺₽₾₿';
 const latin = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 const nums = '0123456789';
@@ -17,13 +16,14 @@ const ColorTable = {
 //////// Classes
 
 class RainColumn {
-columnLength = 0; 
+    columnLength = 0; 
     startingIteration = 0; 
     arrayRainColumn = []; 
     columnY = 0; 
     columnX = 0; 
-    isDimming = false; // New flag to track dimming state
-    dimProgress = 1; // New property to track opacity reduction
+    isDimming = false;
+    dimProgress = 1;
+    dimmingStartIteration = 0;
 
     constructor(length, currentIter, x, y) {
         this.columnLength = length;
@@ -48,23 +48,26 @@ columnLength = 0;
     }
 
     next(iteration) {
+        // If dimming has started, gradually reduce opacity
         if (this.isDimming) {
-            // Gradually reduce opacity
-            this.dimProgress -= 0.05; // Adjust this value to control dimming speed
+            // Slow down dimming process
+            const dimSpeed = 0.01;
+            this.dimProgress -= dimSpeed;
             
             // Update opacity of all characters
             this.arrayRainColumn.forEach(character => {
                 character.element.style.opacity = this.dimProgress;
             });
 
-            // When opacity reaches near zero, kill the column
-            if (this.dimProgress <= 0.1) {
+            // Only kill when opacity is very low
+            if (this.dimProgress <= 0.05) {
                 this.kill();
                 return false;
             }
             return true;
         }
 
+        // Normal column lifecycle
         if (this.isAlive(iteration)) {
             this.arrayRainColumn.forEach((character, index) => {
                 if (!character.next((this.startingIteration) + index, this.columnLength)) {
@@ -78,6 +81,7 @@ columnLength = 0;
 
         // Start dimming when column is no longer alive
         this.isDimming = true;
+        this.dimmingStartIteration = iteration;
         return true;
     }
 
@@ -89,16 +93,16 @@ columnLength = 0;
 }
 
 class CharactersMatrix {
-    currentCharacter = ''; // current character
-    currentColor = ''; // current color
+    currentCharacter = ''; 
+    currentColor = ''; 
 
-    currentOpacity = 0.1; // Start with low opacity
+    currentOpacity = 1; // Revert to full opacity by default
     iteration = 0;
-    decayTime = 0; // decay time of the character in miliseconds
+    decayTime = 0; 
 
-    characterY = 0; // y position of the character
-    characterX = 0; // x position of the character
-    element = null; // HTML element
+    characterY = 0; 
+    characterX = 0; 
+    element = null; 
 
     constructor(element, currentIteration, columnX, columnY) {
         element.style.position = 'absolute';
@@ -117,10 +121,8 @@ class CharactersMatrix {
 
         this.characterX = this.characterX + (((randomNormal() * 2) - 1) * 0.1);
 
-
-        // Gradually increase opacity for newer characters
+        // Revert to original opacity calculation
         if (this.iteration <= 5) {
-            this.currentOpacity = Math.min(this.currentOpacity + 0.2, 1); // Increase opacity up to 1
             this.currentColor = ColorTable[this.iteration];
         } else {
             let citer = currentIteration > columnLength ? columnLength : currentIteration;
@@ -145,7 +147,6 @@ class CharactersMatrix {
         this.element.remove();
     }
 
-    // Method to update the element's position, color, and character
     updateElement() {
         this.element.style.left = this.characterX + 'px';
         this.element.style.top = this.characterY + 'px';
@@ -156,23 +157,20 @@ class CharactersMatrix {
 }
 
 /////// HELPER functions
-// function get random character from alphabet 
 function getRandomCharacter() {
     return alphabet[Math.floor(Math.random() * alphabet.length)];
 }
 
-// gaussian random number distribution from 0 to 1
-// Box-Muller transform.
 function randomNormal() {
     let u = 0, v = 0;
-    while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
+    while (u === 0) u = Math.random();
     while (v === 0) v = Math.random();
     return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
 }
 
 // starting point
 window.onload = function () {
-    console.log( "ready")
+    console.log("ready")
 
     let iteration = 0;
     let rainColumns = [];
@@ -181,18 +179,15 @@ window.onload = function () {
     let height = window.innerHeight;
     let originalHeight = window.innerHeight;
     let numberOfCharactersColumns = Math.ceil(width / fontSize);
-    console.log ( "width ", width)
+    console.log("width ", width)
 
-
-    // event to change width/ height in resize event
     window.addEventListener('resize', () => {
         width = window.innerWidth;
         height = window.innerHeight;
         numberOfCharactersColumns = Math.ceil(width / fontSize);
     });
 
-    console.log( "number",numberOfCharactersColumns)
-
+    console.log("number", numberOfCharactersColumns)
 
     for (let i = 0; i < numberOfCharactersColumns; i++) {
         rainColumns.push(null)
@@ -209,7 +204,7 @@ window.onload = function () {
                     i * fontSize,
                     randomNormal() * randomNormal() * originalHeight
                 );
-                rainColumns[i]=newRainColumn;
+                rainColumns[i] = newRainColumn;
             }
 
             if (rainColumns[i] != null) {
@@ -220,7 +215,6 @@ window.onload = function () {
                     rainColumns[i] = null;
                 }
             }
-
         }
         iteration++;
     }, 1000 / 60);
