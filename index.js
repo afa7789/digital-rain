@@ -121,10 +121,7 @@ class CharactersMatrix {
 
         this.characterX = this.characterX + (((randomNormal() * 2) - 1) * 0.1);
 
-        // Revert to original opacity calculation
-        if (this.iteration <= 5) {
-            this.currentColor = ColorTable[this.iteration];
-        } else {
+        if (this.iteration > 5) {
             let citer = currentIteration > columnLength ? columnLength : currentIteration;
             let calculation = (citer / columnLength);
             this.currentOpacity = (calculation > 0) ? calculation : 0;
@@ -133,6 +130,8 @@ class CharactersMatrix {
                 this.updateElement();
                 return false;
             }
+        } else {
+            this.currentColor = ColorTable[this.iteration];
         }
 
         if (randomNormal() > 0.6) {
